@@ -1,0 +1,120 @@
+---
+title: "CITY"
+author: "Kacper Szczepanik, Michał Nieznański, Ewelina Grondek i "
+date: "2023-10-17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(foreign)
+library(xts)
+library(dygraphs)
+library(datasets)
+```
+
+# 1. Wykorzystac poznane wykresy do zapoznania się z danymi w pliku pkb.csv
+
+```{r}
+pkb<-read.csv("dane/pkb.csv",sep=";")
+pkb.xts<-ts(data = pkb$pkb, frequency = 4,             
+start=c(2002,1), end=c(2019,4))
+plot(pkb.xts,  type="b", # punkty odpowiadające kolejnym obserwacjom
+     pch=16,   # rodzaj symbolu graficznego
+     lty=3,    # linia kropkowana
+     lwd=2,# podwójna grubosć
+     main='Miesięczne PKB')
+```
+
+# 2. Wykorzystac poznane wykresy do zapoznania się z dowolnym szeregiem
+
+# czasowym w pakiecie datasets (pakiet ładuje się automatycznie)
+
+```{r}
+library(datasets)
+sunspots<- sunspots  
+
+s = ts(data=sunspots, frequency = 12,             
+             start=c(1749,1), end=c(1984,12)) 
+
+plot(s,
+     type="b", # punkty odpowiadające kolejnym obserwacjom
+     pch=16,   # rodzaj symbolu graficznego
+     lty=3,    # linia kropkowana
+     lwd=2,# podwójna grubosć
+     main='Monthly Sunspot Numbers, 1749-1983'
+)
+```
+
+# 4. Wykorzystac poznane wykresy do zapoznania się z dowolnym szeregim czasowym
+
+# ze strony stooq.com
+
+```{r}
+# 4. Wykorzystac poznane wykresy do zapoznania się z dowolnym szeregim czasowym 
+#    ze strony stooq.com
+alr <- read.csv("https://stooq.com/q/d/l/?s=alr&i=d",               # nazwa pliku
+                  header = TRUE,  	 # czy obserwacje w pierwszym wierszu?
+                  sep = ",", 	       # separator kolumn
+                  dec = ".")	       # separator dziesiętny
+
+# obejrzymy dane zaimportowane
+str(alr)
+alr
+head(alr)
+tail(alr)
+
+class(alr) 
+
+# data we własciwym formacie
+alr$Date <- as.Date(alr$Date)
+
+# wykres w czasie
+plot(alr$Date, alr$Close, type = 'l', main = "Alior bank cena akcji")
+
+
+# Aby przedstawić notowania za pomocą pakietu `dygraphs` 
+# musimy stworzyć obiekt typu xts:
+
+str(alr)  
+library(xts)
+alr.xts <- xts(alr[, c("Open", "Close")], order.by = alr$Date)
+
+
+# Następnie wrzucamy obiekt `xts` bezposrednio do funkcji `dygraph`
+
+# Press ctrl+shift+m to get pipe %>% 
+#1:3 %>% sum 
+
+library(dygraphs)
+dygraph(alr.xts$Close) %>% dyRangeSelector(height = 40)
+
+
+# Agregowanie danych do niższej częstotliwości - np. do rocznych
+
+# TYLKO dla xts object 
+
+alr.xts_1months=to.period(alr.xts, 
+                          period = 'months', # 'seconds', "minutes", "hours", "days", "weeks", "months", "quarters", "years"
+                          k = 1,              
+                          OHLC = FALSE) # czy Open, High, Low, Close?  
+head(alr.xts_1months)
+tail(alr.xts_1months)
+
+
+alr.xts_1quarters=to.period(alr.xts, 
+                            period = 'quarters', 
+                            k = 1,              
+                            OHLC = FALSE)  
+head(alr.xts_1quarters)
+tail(alr.xts_1quarters)
+
+
+alr.xts_1years=to.period(alr.xts, 
+                         period = 'years', 
+                         k = 1,              
+                         OHLC = FALSE)  
+head(alr.xts_1years)
+tail(alr.xts_1years)
+
+```
